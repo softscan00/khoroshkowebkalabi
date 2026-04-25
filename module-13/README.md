@@ -1,0 +1,259 @@
+# Модуль 13: Callbacks
+
+## 🎯 Цель модуля
+
+Понять, что такое callback-функции и как их использовать для асинхронных операций.
+
+---
+
+## 📚 Теория
+
+### Что такое callback?
+
+**Callback** (обратный вызов) — это функция, которая передаётся в другую функцию как аргумент и вызывается позже.
+
+```javascript
+function greet(name, callback) {
+  const message = `Привет, ${name}!`;
+  callback(message);
+}
+
+greet('Иван', function(msg) {
+  console.log(msg); // "Привет, Иван!"
+});
+```
+
+### Зачем нужны callbacks?
+
+1. **Асинхронные операции** — выполнить код после завершения операции
+2. **Кастомизация** — передать своё поведение в функцию
+3. **Обработка событий** — реагировать на действия пользователя
+
+### Синхронные callbacks
+
+Выполняются сразу, в момент вызова:
+
+```javascript
+const numbers = [1, 2, 3];
+
+// forEach принимает callback и вызывает его для каждого элемента
+numbers.forEach(function(num) {
+  console.log(num * 2);
+});
+// 2, 4, 6
+```
+
+### Асинхронные callbacks
+
+Выполняются позже, после завершения операции:
+
+```javascript
+console.log('Начало');
+
+setTimeout(function() {
+  console.log('Прошла 1 секунда');
+}, 1000);
+
+console.log('Конец');
+
+// Вывод:
+// Начало
+// Конец
+// Прошла 1 секунда
+```
+
+### Error-first callback (Node.js стиль)
+
+В Node.js принято передавать ошибку первым аргументом:
+
+```javascript
+function readFile(path, callback) {
+  // Если ошибка — первый аргумент
+  // Если успех — второй аргумент
+
+  if (!path) {
+    callback(new Error('Путь не указан'), null);
+    return;
+  }
+
+  callback(null, 'содержимое файла');
+}
+
+// Использование
+readFile('/data.txt', function(error, data) {
+  if (error) {
+    console.log('Ошибка:', error.message);
+    return;
+  }
+  console.log('Данные:', data);
+});
+```
+
+### Callback Hell (проблема вложенности)
+
+Когда много асинхронных операций подряд — код становится нечитаемым:
+
+```javascript
+// ❌ Плохо — "пирамида смерти"
+getUser(1, function(user) {
+  getOrders(user.id, function(orders) {
+    getOrderDetails(orders[0].id, function(details) {
+      console.log(details);
+    });
+  });
+});
+```
+
+Эту проблему решают **Promises** (следующий модуль).
+
+---
+
+## 💡 Примеры
+
+### Пример 1: Простой callback
+
+```javascript
+function calculate(a, b, operation) {
+  return operation(a, b);
+}
+
+const sum = calculate(5, 3, function(x, y) {
+  return x + y;
+});
+console.log(sum); // 8
+
+const product = calculate(5, 3, (x, y) => x * y);
+console.log(product); // 15
+```
+
+### Пример 2: Асинхронный callback
+
+```javascript
+function fetchUser(id, onSuccess, onError) {
+  setTimeout(() => {
+    if (id <= 0) {
+      onError(new Error('Неверный ID'));
+      return;
+    }
+    onSuccess({ id, name: 'Пользователь ' + id });
+  }, 500);
+}
+
+fetchUser(1,
+  user => console.log('Успех:', user),
+  err => console.log('Ошибка:', err.message)
+);
+```
+
+### Пример 3: Своя реализация forEach
+
+```javascript
+function myForEach(arr, callback) {
+  for (let i = 0; i < arr.length; i++) {
+    callback(arr[i], i, arr);
+  }
+}
+
+myForEach([10, 20, 30], function(item, index) {
+  console.log(`Элемент ${index}: ${item}`);
+});
+```
+
+---
+
+## ✏️ Задание
+
+### Описание
+
+Напишите функцию `asyncOperation`, которая симулирует асинхронную операцию с callback в стиле Node.js (error-first).
+
+### Требования
+
+1. Функция принимает два аргумента: `shouldSucceed` (boolean) и `callback` (function)
+2. Через 100мс вызывает callback
+3. Если `shouldSucceed === true` — вызывает `callback(null, 'Операция успешна')`
+4. Если `shouldSucceed === false` — вызывает `callback(new Error('Операция не удалась'), null)`
+
+### Примеры использования
+
+```javascript
+asyncOperation(true, function(error, result) {
+  if (error) {
+    console.log('Ошибка:', error.message);
+    return;
+  }
+  console.log('Результат:', result);
+});
+// Через 100мс: "Результат: Операция успешна"
+
+asyncOperation(false, function(error, result) {
+  if (error) {
+    console.log('Ошибка:', error.message);
+    return;
+  }
+  console.log('Результат:', result);
+});
+// Через 100мс: "Ошибка: Операция не удалась"
+```
+
+---
+
+## 💭 Подсказки
+
+<details>
+<summary>Подсказка 1: Направление</summary>
+
+Как сделать так, чтобы callback вызывался не сразу, а через определённое время? Какой паттерн в Node.js определяет порядок аргументов при вызове callback — что идёт первым: ошибка или результат?
+
+</details>
+
+<details>
+<summary>Подсказка 2: Структура</summary>
+
+Вам нужно обернуть логику в `setTimeout`, чтобы callback вызывался не синхронно, а с задержкой. Внутри таймера используйте условие для проверки `shouldSucceed` и вызывайте callback по паттерну error-first: первый аргумент — ошибка (или `null`), второй — результат (или `null`).
+
+</details>
+
+<details>
+<summary>Подсказка 3: Подход</summary>
+
+Функция должна запустить `setTimeout` с задержкой 100 мс. Внутри таймера проверьте значение `shouldSucceed`. В зависимости от результата вызовите callback с двумя аргументами в стиле error-first: при успехе ошибка отсутствует (передайте `null`), а результат — строка. При неудаче передайте объект `Error` с сообщением, а вместо результата — `null`. Посмотрите в раздел «Примеры использования», чтобы понять какие именно строки ожидаются.
+
+</details>
+
+---
+
+## 🧪 Как проверить решение
+
+```bash
+npx vitest module-13/index.spec.js
+```
+
+---
+
+## 📖 Дополнительные материалы
+
+- [MDN: Callback function](https://developer.mozilla.org/ru/docs/Glossary/Callback_function)
+- [JavaScript.info: Callbacks](https://learn.javascript.ru/callbacks)
+
+---
+
+## ❓ Частые вопросы
+
+**Q: Чем callback отличается от обычной функции?**
+
+A: Ничем. Callback — это обычная функция, просто переданная как аргумент в другую функцию.
+
+**Q: Почему ошибка передаётся первым аргументом?**
+
+A: Это конвенция Node.js. Так легко проверить: `if (error) { ... }`. Если ошибки нет — первый аргумент `null`.
+
+**Q: Когда использовать callbacks, а когда Promises?**
+
+A: Сейчас чаще используют Promises и async/await. Callbacks остались в старом коде и некоторых API (например, `setTimeout`).
+
+---
+
+## 🎓 Что дальше?
+
+После выполнения переходите к **Модуль 14: Event Loop и setTimeout** — узнаете, как JavaScript выполняет асинхронный код.

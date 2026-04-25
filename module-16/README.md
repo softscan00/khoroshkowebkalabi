@@ -1,0 +1,253 @@
+# Модуль 16: async/await
+
+## 🎯 Цель модуля
+
+Научиться использовать async/await — синтаксический сахар для работы с Promises, делающий асинхронный код похожим на синхронный.
+
+---
+
+## 📚 Теория
+
+### Что такое async/await?
+
+**async/await** — это способ писать асинхронный код так, будто он синхронный. Под капотом это всё те же Promises, но читать и писать такой код намного проще.
+
+### async функция
+
+Ключевое слово `async` перед функцией означает, что функция всегда возвращает Promise:
+
+```javascript
+async function greet() {
+  return 'Привет';
+}
+
+// Эквивалентно:
+function greet() {
+  return Promise.resolve('Привет');
+}
+
+greet().then(msg => console.log(msg)); // "Привет"
+```
+
+### await
+
+`await` приостанавливает выполнение async-функции до тех пор, пока Promise не разрешится:
+
+```javascript
+async function getData() {
+  const result = await somePromise;  // Ждём результат
+  console.log(result);               // Работаем с результатом
+}
+```
+
+**Важно:** `await` можно использовать только внутри `async` функции.
+
+### Сравнение: then vs await
+
+```javascript
+// С then (цепочка)
+function loadUser() {
+  return fetch('/api/user')
+    .then(response => response.json())
+    .then(user => {
+      console.log(user);
+      return user;
+    });
+}
+
+// С async/await (линейный код)
+async function loadUser() {
+  const response = await fetch('/api/user');
+  const user = await response.json();
+  console.log(user);
+  return user;
+}
+```
+
+### Обработка ошибок: try/catch
+
+```javascript
+async function loadData() {
+  try {
+    const response = await fetch('/api/data');
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.log('Ошибка:', error.message);
+    return null;
+  }
+}
+```
+
+### Последовательное vs параллельное выполнение
+
+```javascript
+// ❌ Последовательно (медленно)
+async function loadAll() {
+  const user = await fetchUser();     // Ждём
+  const posts = await fetchPosts();   // Потом ждём
+  const comments = await fetchComments(); // Потом ждём
+}
+
+// ✅ Параллельно (быстро)
+async function loadAll() {
+  const [user, posts, comments] = await Promise.all([
+    fetchUser(),
+    fetchPosts(),
+    fetchComments()
+  ]);
+}
+```
+
+---
+
+## 💡 Примеры
+
+### Пример 1: Простая async функция
+
+```javascript
+function delay(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+async function countdown() {
+  console.log('3...');
+  await delay(1000);
+  console.log('2...');
+  await delay(1000);
+  console.log('1...');
+  await delay(1000);
+  console.log('Поехали!');
+}
+
+countdown();
+```
+
+### Пример 2: Обработка ошибок
+
+```javascript
+async function divide(a, b) {
+  if (b === 0) {
+    throw new Error('Деление на ноль');
+  }
+  return a / b;
+}
+
+async function calculate() {
+  try {
+    const result = await divide(10, 0);
+    console.log(result);
+  } catch (error) {
+    console.log('Ошибка:', error.message);
+  }
+}
+
+calculate(); // "Ошибка: Деление на ноль"
+```
+
+### Пример 3: Цепочка асинхронных операций
+
+```javascript
+async function processUser(id) {
+  const user = await getUser(id);
+  const orders = await getOrders(user.id);
+  const total = orders.reduce((sum, o) => sum + o.amount, 0);
+  return { user, total };
+}
+```
+
+---
+
+## ✏️ Задание
+
+### Описание
+
+Напишите async-функцию `fetchSequential`, которая последовательно выполняет массив асинхронных функций и собирает результаты.
+
+### Требования
+
+1. Функция принимает массив функций, каждая из которых возвращает Promise
+2. Выполняет функции **последовательно** (одна за другой)
+3. Возвращает Promise с массивом результатов
+4. Если какая-то функция выбрасывает ошибку — пробрасывает её дальше
+
+### Примеры использования
+
+```javascript
+const task1 = () => Promise.resolve(1);
+const task2 = () => Promise.resolve(2);
+const task3 = () => Promise.resolve(3);
+
+const results = await fetchSequential([task1, task2, task3]);
+console.log(results); // [1, 2, 3]
+
+// С ошибкой
+const failing = () => Promise.reject(new Error('Упс'));
+await fetchSequential([task1, failing, task3]); // Выбросит ошибку "Упс"
+```
+
+---
+
+## 💭 Подсказки
+
+<details>
+<summary>Подсказка 1: Направление</summary>
+
+Почему `forEach` не подходит для последовательного выполнения асинхронных операций? Какой цикл позволяет корректно использовать `await` внутри себя? Как накапливать результаты в массив?
+
+</details>
+
+<details>
+<summary>Подсказка 2: Структура</summary>
+
+Объявите функцию с ключевым словом `async`. Внутри создайте пустой массив для результатов и переберите входной массив задач в цикле. Помните, что `forEach` не умеет корректно работать с `await` — используйте другой тип цикла.
+
+</details>
+
+<details>
+<summary>Подсказка 3: Подход</summary>
+
+Используйте цикл `for...of` для перебора массива `tasks`. Каждый элемент массива — это функция, возвращающая Promise. Вызовите её и дождитесь результата через `await`, затем добавьте результат в массив. После завершения цикла верните массив. Обработку ошибок явно писать не нужно — `async`-функция автоматически пробросит любую ошибку из `await` как rejected Promise.
+
+</details>
+
+---
+
+## 🧪 Как проверить решение
+
+```bash
+npx vitest module-16/index.spec.js
+```
+
+---
+
+## 📖 Дополнительные материалы
+
+- [MDN: async function](https://developer.mozilla.org/ru/docs/Web/JavaScript/Reference/Statements/async_function)
+- [JavaScript.info: async/await](https://learn.javascript.ru/async-await)
+
+---
+
+## ❓ Частые вопросы
+
+**Q: Можно ли использовать await без async?**
+
+A: Только на верхнем уровне модуля (top-level await в ES modules). В обычных функциях — нельзя.
+
+**Q: Чем async/await лучше then/catch?**
+
+A: Код читается линейно, как синхронный. Легче отлаживать. Ошибки ловятся через привычный try/catch.
+
+**Q: Почему forEach с await не работает?**
+
+A: forEach не ждёт завершения асинхронных операций. Используйте `for...of` или `for` для последовательного выполнения.
+
+**Q: Как выполнить несколько await параллельно?**
+
+A: Используйте `Promise.all([promise1, promise2, ...])`.
+
+---
+
+## 🎓 Что дальше?
+
+После выполнения переходите к **Модуль 17: HTML** — начнёте создавать пользовательские интерфейсы.

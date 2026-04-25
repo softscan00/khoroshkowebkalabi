@@ -1,0 +1,259 @@
+# Модуль 15: Promises
+
+## 🎯 Цель модуля
+
+Научиться создавать и использовать Promises — современный способ работы с асинхронным кодом.
+
+---
+
+## 📚 Теория
+
+### Что такое Promise?
+
+**Promise** (обещание) — это объект, представляющий результат асинхронной операции. Promise может быть в трёх состояниях:
+
+```
+┌─────────────┐
+│   PENDING   │  ← Начальное состояние (ожидание)
+└──────┬──────┘
+       │
+       ├──────────────────┐
+       ▼                  ▼
+┌─────────────┐    ┌─────────────┐
+│  FULFILLED  │    │  REJECTED   │
+│   (успех)   │    │  (ошибка)   │
+└─────────────┘    └─────────────┘
+```
+
+### Создание Promise
+
+```javascript
+const promise = new Promise((resolve, reject) => {
+  // Асинхронная операция
+
+  if (/* успех */) {
+    resolve('Результат');  // Переводит в FULFILLED
+  } else {
+    reject(new Error('Ошибка'));  // Переводит в REJECTED
+  }
+});
+```
+
+### Использование Promise: then/catch
+
+```javascript
+promise
+  .then(result => {
+    console.log('Успех:', result);
+  })
+  .catch(error => {
+    console.log('Ошибка:', error.message);
+  });
+```
+
+### Пример: асинхронная задержка
+
+```javascript
+function delay(ms) {
+  return new Promise(resolve => {
+    setTimeout(resolve, ms);
+  });
+}
+
+delay(1000).then(() => {
+  console.log('Прошла 1 секунда');
+});
+```
+
+### Цепочки Promise (chaining)
+
+Метод `then` возвращает новый Promise, что позволяет строить цепочки:
+
+```javascript
+fetch('/api/user')
+  .then(response => response.json())
+  .then(user => fetch(`/api/orders/${user.id}`))
+  .then(response => response.json())
+  .then(orders => console.log(orders))
+  .catch(error => console.log('Ошибка:', error));
+```
+
+### Promise vs Callback
+
+```javascript
+// ❌ Callback Hell
+getUser(1, (user) => {
+  getOrders(user.id, (orders) => {
+    getDetails(orders[0].id, (details) => {
+      console.log(details);
+    });
+  });
+});
+
+// ✅ Promise Chain
+getUser(1)
+  .then(user => getOrders(user.id))
+  .then(orders => getDetails(orders[0].id))
+  .then(details => console.log(details))
+  .catch(error => console.log(error));
+```
+
+### finally
+
+Выполняется всегда — и при успехе, и при ошибке:
+
+```javascript
+loadData()
+  .then(data => console.log(data))
+  .catch(error => console.log(error))
+  .finally(() => {
+    console.log('Загрузка завершена');
+    hideSpinner();
+  });
+```
+
+---
+
+## 💡 Примеры
+
+### Пример 1: Простой Promise
+
+```javascript
+function checkNumber(num) {
+  return new Promise((resolve, reject) => {
+    if (num > 0) {
+      resolve('Положительное число');
+    } else {
+      reject(new Error('Число должно быть положительным'));
+    }
+  });
+}
+
+checkNumber(5).then(msg => console.log(msg));  // "Положительное число"
+checkNumber(-1).catch(err => console.log(err.message));  // "Число должно быть..."
+```
+
+### Пример 2: Асинхронная операция
+
+```javascript
+function fetchUser(id) {
+  return new Promise((resolve, reject) => {
+    setTimeout(() => {
+      if (id > 0) {
+        resolve({ id, name: 'User ' + id });
+      } else {
+        reject(new Error('Invalid ID'));
+      }
+    }, 500);
+  });
+}
+
+fetchUser(1)
+  .then(user => console.log(user))
+  .catch(err => console.log(err.message));
+```
+
+### Пример 3: Цепочка преобразований
+
+```javascript
+function double(x) {
+  return new Promise(resolve => {
+    setTimeout(() => resolve(x * 2), 100);
+  });
+}
+
+double(5)
+  .then(result => double(result))  // 10
+  .then(result => double(result))  // 20
+  .then(result => console.log(result));  // 40
+```
+
+---
+
+## ✏️ Задание
+
+### Описание
+
+Напишите функцию `createPromise`, которая создаёт Promise с задержкой.
+
+### Требования
+
+1. Функция принимает два аргумента: `shouldResolve` (boolean) и `delay` (number, мс)
+2. Возвращает Promise
+3. Через `delay` миллисекунд:
+   - Если `shouldResolve === true` — resolve со значением `'Успех'`
+   - Если `shouldResolve === false` — reject с `new Error('Ошибка')`
+
+### Примеры использования
+
+```javascript
+createPromise(true, 100)
+  .then(result => console.log(result))   // Через 100мс: "Успех"
+  .catch(err => console.log(err.message));
+
+createPromise(false, 200)
+  .then(result => console.log(result))
+  .catch(err => console.log(err.message));  // Через 200мс: "Ошибка"
+```
+
+---
+
+## 💭 Подсказки
+
+<details>
+<summary>Подсказка 1: Направление</summary>
+
+Как создать объект Promise? Какие две функции доступны внутри его конструктора и за что каждая отвечает? Как совместить Promise с таймером, чтобы результат появился не сразу, а через заданное время?
+
+</details>
+
+<details>
+<summary>Подсказка 2: Структура</summary>
+
+Функция должна вернуть `new Promise(...)`. Внутри конструктора Promise у вас есть доступ к двум функциям — для успешного и неуспешного завершения. Совместите Promise с `setTimeout`, чтобы решение о результате принималось после заданной задержки.
+
+</details>
+
+<details>
+<summary>Подсказка 3: Подход</summary>
+
+Создайте Promise, внутри которого запустите `setTimeout` с задержкой `delay`. Когда таймер сработает, проверьте значение `shouldResolve`. При `true` завершите Promise успешно, передав строку-результат. При `false` завершите Promise с ошибкой, создав объект `Error` с сообщением. Посмотрите раздел «Примеры использования» — там видно, какие именно строки ожидаются при resolve и reject.
+
+</details>
+
+---
+
+## 🧪 Как проверить решение
+
+```bash
+npx vitest module-15/index.spec.js
+```
+
+---
+
+## 📖 Дополнительные материалы
+
+- [MDN: Promise](https://developer.mozilla.org/ru/docs/Web/JavaScript/Reference/Global_Objects/Promise)
+- [JavaScript.info: Promise](https://learn.javascript.ru/promise-basics)
+
+---
+
+## ❓ Частые вопросы
+
+**Q: Чем Promise лучше callback?**
+
+A: Promise позволяет писать плоский код вместо вложенного. Ошибки обрабатываются в одном месте через `.catch()`.
+
+**Q: Можно ли отменить Promise?**
+
+A: Нет, стандартный Promise нельзя отменить. Для этого используют AbortController или специальные библиотеки.
+
+**Q: Что будет, если вызвать resolve() дважды?**
+
+A: Ничего — Promise меняет состояние только один раз. Повторные вызовы игнорируются.
+
+---
+
+## 🎓 Что дальше?
+
+После выполнения переходите к **Модуль 16: async/await** — более удобный синтаксис для работы с Promises.

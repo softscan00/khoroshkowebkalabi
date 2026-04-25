@@ -1,0 +1,219 @@
+# Модуль 12: npm и package.json
+
+## 🎯 Цель модуля
+
+Научиться создавать проекты с npm: инициализировать package.json, устанавливать библиотеки и использовать их в коде.
+
+---
+
+## 📚 Теория
+
+### Что такое npm?
+
+**npm** (Node Package Manager) — менеджер пакетов для JavaScript. Это огромная библиотека готовых решений: нужна работа с датами — есть пакет, нужен цветной вывод в консоль — есть пакет.
+
+### Что такое package.json?
+
+**package.json** — "паспорт" проекта. Содержит название, версию и список зависимостей:
+
+```json
+{
+  "name": "my-project",
+  "version": "1.0.0",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "chalk": "^4.1.2"
+  }
+}
+```
+
+### Основные команды
+
+| Команда | Описание |
+|---------|----------|
+| `npm init -y` | Создать package.json |
+| `npm install <пакет>` | Установить пакет |
+| `npm i <пакет>` | Короткая версия |
+| `npm install` | Установить все зависимости из package.json |
+| `npm run <скрипт>` | Запустить скрипт |
+
+### Что такое node_modules?
+
+При `npm install` создаётся папка `node_modules` — туда скачиваются пакеты:
+- **Не коммитится в Git** (добавьте в .gitignore)
+- **Восстанавливается** командой `npm install`
+
+---
+
+## 💡 Примеры библиотек
+
+### chalk — цветной текст в консоли
+
+```bash
+npm install chalk@4
+```
+
+```javascript
+const chalk = require('chalk');
+
+console.log(chalk.green('Успех!'));
+console.log(chalk.red('Ошибка!'));
+console.log(chalk.blue.bold('Важно'));
+```
+
+### dayjs — работа с датами
+
+```bash
+npm install dayjs
+```
+
+```javascript
+const dayjs = require('dayjs');
+
+console.log(dayjs().format('DD.MM.YYYY')); // 01.02.2024
+console.log(dayjs().add(7, 'day').format('DD.MM.YYYY')); // через неделю
+```
+
+### figlet — ASCII-арт текст
+
+```bash
+npm install figlet
+```
+
+```javascript
+const figlet = require('figlet');
+
+console.log(figlet.textSync('Hello!'));
+//  _   _      _ _       _
+// | | | | ___| | | ___ | |
+// | |_| |/ _ \ | |/ _ \| |
+// |  _  |  __/ | | (_) |_|
+// |_| |_|\___|_|_|\___/(_)
+```
+
+---
+
+## ✏️ Задание
+
+### Описание
+
+Создайте свой мини-проект с использованием npm-библиотеки.
+
+### Требования
+
+1. Создайте папку `module-12/my-project`
+2. Инициализируйте npm (`npm init -y`)
+3. Установите **одну из библиотек** на выбор:
+   - `chalk@4` — цветной вывод
+   - `dayjs` — работа с датами
+   - `figlet` — ASCII-арт
+   - или любую другую
+4. Создайте `index.js`, который использует библиотеку
+5. Добавьте скрипт `"start": "node index.js"` в package.json
+6. Запустите через `npm start`
+
+### Пример структуры
+
+```
+module-12/
+├── my-project/
+│   ├── package.json      # созданный вами
+│   ├── node_modules/     # создаётся автоматически
+│   └── index.js          # ваш код
+└── ...
+```
+
+### Пример с chalk
+
+```bash
+cd module-12
+mkdir my-project
+cd my-project
+npm init -y
+npm install chalk@4
+```
+
+```javascript
+// index.js
+const chalk = require('chalk');
+
+const name = 'Студент';
+
+console.log(chalk.green('='.repeat(30)));
+console.log(chalk.blue.bold(`Привет, ${name}!`));
+console.log(chalk.yellow('Ты освоил npm!'));
+console.log(chalk.green('='.repeat(30)));
+```
+
+```bash
+npm start
+```
+
+---
+
+## 💭 Подсказки
+
+<details>
+<summary>💡 Подсказка 1: Направление</summary>
+
+С чего начинается любой npm-проект? Какая команда создаёт package.json? После инициализации — как установить нужный пакет?
+
+</details>
+
+<details>
+<summary>💡 Подсказка 2: Структура</summary>
+
+Порядок действий: создайте папку, перейдите в неё, инициализируйте npm с флагом `-y`, затем установите выбранную библиотеку. После этого создайте `index.js` и подключите библиотеку через `require()`. Не забудьте, что для запуска через `npm start` нужно добавить соответствующий скрипт в секцию `"scripts"` файла package.json.
+
+</details>
+
+<details>
+<summary>💡 Подсказка 3: Подход</summary>
+
+Выберите одну из предложенных библиотек (chalk@4, dayjs или figlet). Подключите её через `require()` в index.js. Используйте методы библиотеки для вывода чего-нибудь интересного в консоль — например, цветной текст, отформатированную дату или ASCII-арт. Каждая библиотека имеет примеры использования в секции «Примеры библиотек» выше — ориентируйтесь на них, но напишите свой вариант.
+
+</details>
+
+---
+
+## 🧪 Как проверить решение
+
+1. Перейдите в `module-12/my-project`
+2. Запустите `npm start`
+3. Должен выполниться ваш скрипт с использованием библиотеки
+
+Также запустите тест:
+```bash
+npx vitest module-12/index.spec.js
+```
+
+---
+
+## 📖 Дополнительные материалы
+
+- [npm — официальный сайт](https://www.npmjs.com/) — поиск пакетов
+- [package.json документация](https://docs.npmjs.com/cli/v10/configuring-npm/package-json)
+
+---
+
+## ❓ Частые вопросы
+
+**Q: Почему chalk@4, а не просто chalk?**
+
+A: Версия 5+ использует ES Modules, что сложнее для начинающих. Версия 4 работает с `require()`.
+
+**Q: Нужно ли коммитить node_modules?**
+
+A: Нет! Эта папка восстанавливается командой `npm install`. Добавьте её в `.gitignore`.
+
+**Q: Как узнать какие пакеты есть?**
+
+A: Ищите на [npmjs.com](https://www.npmjs.com/). Там миллионы пакетов на все случаи.
+
+---
+
+## 🎓 Что дальше?
+
+После выполнения переходите к **Модуль 13: Callbacks** — узнаете, что такое callback-функции и как их использовать.

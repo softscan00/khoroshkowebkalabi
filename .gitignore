@@ -1,0 +1,15 @@
+.qodo
+.vitest-reports
+*node_modules
+package-lock.json
+index.solution.js
+app.solution.js
+server.solution.js
+store.solution.js
+*.solution.jsx
+PLAN.md
+STRUCTURE.md
+CLAUDE.md
+TEMPLATE.md
+THEORY.md
+database.db
